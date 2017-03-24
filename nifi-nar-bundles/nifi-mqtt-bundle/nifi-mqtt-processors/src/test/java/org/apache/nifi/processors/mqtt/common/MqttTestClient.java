@@ -17,16 +17,7 @@
 
 package org.apache.nifi.processors.mqtt.common;
 
-import org.eclipse.paho.client.mqttv3.IMqttClient;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
+import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -113,6 +104,38 @@ public class MqttTestClient implements IMqttClient {
     @Override
     public void subscribe(String[] topicFilters, int[] qos) throws MqttException {
         throw new UnsupportedOperationException("Multiple topic filters is not supported");
+    }
+
+
+    @Override
+    public void subscribe(String s, IMqttMessageListener iMqttMessageListener) throws MqttException, MqttSecurityException {
+        throw new UnsupportedOperationException("This function isn't supported");
+    }
+
+
+    @Override
+    public void subscribe(String[] strings, IMqttMessageListener[] iMqttMessageListeners) throws MqttException {
+        throw new UnsupportedOperationException("This function isn't supported");
+    }
+
+    @Override
+    public void subscribe(String s, int i, IMqttMessageListener iMqttMessageListener) throws MqttException {
+        throw new UnsupportedOperationException("This function isn't supported");
+    }
+
+    @Override
+    public void subscribe(String[] strings, int[] ints, IMqttMessageListener[] iMqttMessageListeners) throws MqttException {
+        throw new UnsupportedOperationException("This function isn't supported");
+    }
+
+    @Override
+    public void setManualAcks(boolean b) {
+        throw new UnsupportedOperationException("This function isn't supported");
+    }
+
+    @Override
+    public void messageArrivedComplete(int i, int i1) throws MqttException {
+
     }
 
     @Override

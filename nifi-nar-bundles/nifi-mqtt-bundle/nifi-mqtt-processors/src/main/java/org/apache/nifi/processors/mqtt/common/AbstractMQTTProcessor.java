@@ -81,9 +81,9 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
     };
 
     public static final Validator BROKER_VALIDATOR = new Validator() {
-
         @Override
         public ValidationResult validate(String subject, String input, ValidationContext context) {
+            /*
             try{
                 URI brokerURI = new URI(input);
                 if (!"".equals(brokerURI.getPath())) {
@@ -95,6 +95,7 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             } catch (URISyntaxException e) {
                 return new ValidationResult.Builder().subject(subject).valid(false).explanation("it is not valid URI syntax.").build();
             }
+            */
             return new ValidationResult.Builder().subject(subject).valid(true).build();
         }
     };
@@ -271,6 +272,8 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             }
         }
 
+        // Removing the validation for Broker URI
+        /*
         try {
             URI brokerURI = new URI(validationContext.getProperty(PROP_BROKER_URI).getValue());
             if (brokerURI.getScheme().equalsIgnoreCase("ssl") && !validationContext.getProperty(PROP_SSL_CONTEXT_SERVICE).isSet()) {
@@ -280,6 +283,7 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
         } catch (URISyntaxException e) {
             results.add(new ValidationResult.Builder().subject(PROP_BROKER_URI.getName()).valid(false).explanation("it is not valid URI syntax.").build());
         }
+        */
 
         return results;
     }
@@ -337,6 +341,9 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             }
         } catch(MqttException me) {
             logger.error("Failed to initialize the connection to the  " + me.getMessage());
+        } catch(RuntimeException re){
+            logger.error("Runtimes suck: " + re.getMessage());
+            logger.error("Stacktrace for NPE: ", re);
         }
     }
 
