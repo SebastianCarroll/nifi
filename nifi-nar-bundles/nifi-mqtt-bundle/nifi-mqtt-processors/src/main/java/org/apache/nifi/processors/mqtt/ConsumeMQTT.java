@@ -205,16 +205,23 @@ public class ConsumeMQTT extends AbstractMQTTProcessor {
 
     @OnScheduled
     public void onScheduled(final ProcessContext context) throws IOException, ClassNotFoundException {
-        qos = context.getProperty(PROP_QOS).asInteger();
-        maxQueueSize = context.getProperty(PROP_MAX_QUEUE_SIZE).asLong();
-        topicFilter = context.getProperty(PROP_TOPIC_FILTER).getValue();
+        logger.info("Running onScheduled");
+        try {
+            logger.info("Running onScheduled: In try block");
+            qos = context.getProperty(PROP_QOS).asInteger();
+            maxQueueSize = context.getProperty(PROP_MAX_QUEUE_SIZE).asLong();
+            topicFilter = context.getProperty(PROP_TOPIC_FILTER).getValue();
 
-        buildClient(context);
-        scheduled.set(true);
+            buildClient(context);
+            scheduled.set(true);
+        } catch(Exception e) {
+            logger.error("Runtime: " + e.getMessage() + e.getStackTrace());
+        }
     }
 
     @OnUnscheduled
     public void onUnscheduled(final ProcessContext context) {
+        logger.info("Unscheduling");
         scheduled.set(false);
 
         mqttClientConnectLock.writeLock().lock();
