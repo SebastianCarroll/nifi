@@ -354,17 +354,20 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             }
 
             PropertyValue proxy_host = context.getProperty(PROXY_HOST);
+            Integer proxy_port = Integer.valueOf(context.getProperty(PROXY_PORT).getValue());
             logger.info("Proxy host set as: " + proxy_host);
             
             if(proxy_host.isSet()) {
                 logger.debug("Proxy host set as " + proxy_host);
                 SSLSocketFactoryFactory factoryFactory = new SSLSocketFactoryFactory();
+
                 factoryFactory.initialize(new Properties(), null);
                 connOpts.setSocketFactory(
                         new SSLTunnelSocketFactory(
                                 factoryFactory.createSocketFactory(null),
                                 proxy_host.getValue(),
-                                80));
+                                proxy_port));
+
             }
 
 
