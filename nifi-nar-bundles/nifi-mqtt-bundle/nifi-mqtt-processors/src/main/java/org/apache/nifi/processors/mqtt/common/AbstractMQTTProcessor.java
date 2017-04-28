@@ -83,22 +83,29 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
     public static final Validator BROKER_VALIDATOR = new Validator() {
         @Override
         public ValidationResult validate(String subject, String input, ValidationContext context) {
-            /*
+
             try{
                 URI brokerURI = new URI(input);
                 if (!"".equals(brokerURI.getPath())) {
                     return new ValidationResult.Builder().subject(subject).valid(false).explanation("the broker URI cannot have a path. It currently is:" + brokerURI.getPath()).build();
                 }
-                if (!("tcp".equals(brokerURI.getScheme()) || "ssl".equals(brokerURI.getScheme()))) {
-                    return new ValidationResult.Builder().subject(subject).valid(false).explanation("only the 'tcp' and 'ssl' schemes are supported.").build();
+                if (!brokerSchemeSupported(brokerURI)) {
+                    return new ValidationResult.Builder().subject(subject).valid(false).explanation("only the 'tcp', 'ssl', 'ws' and 'wss' schemes are supported.").build();
                 }
             } catch (URISyntaxException e) {
                 return new ValidationResult.Builder().subject(subject).valid(false).explanation("it is not valid URI syntax.").build();
             }
-            */
             return new ValidationResult.Builder().subject(subject).valid(true).build();
+
         }
     };
+
+    private static boolean brokerSchemeSupported(URI brokerURI) {
+        return "tcp".equals(brokerURI.getScheme()) ||
+                "ssl".equals(brokerURI.getScheme()) ||
+                "ws".equals(brokerURI.getScheme()) ||
+                "wss".equals(brokerURI.getScheme());
+    }
 
     public static final Validator RETAIN_VALIDATOR = new Validator() {
 
