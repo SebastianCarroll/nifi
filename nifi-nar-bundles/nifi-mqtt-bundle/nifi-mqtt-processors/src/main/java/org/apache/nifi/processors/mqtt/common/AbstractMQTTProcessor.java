@@ -354,11 +354,11 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             }
 
             PropertyValue proxy_host = context.getProperty(PROXY_HOST);
-            Integer proxy_port = Integer.valueOf(context.getProperty(PROXY_PORT).getValue());
-            logger.info("Proxy host set as: " + proxy_host);
+            Integer proxy_port = context.getProperty(PROXY_PORT).asInteger();
+            getLogger().info("Proxy host set as: " + proxy_host);
             
             if(proxy_host.isSet()) {
-                logger.debug("Proxy host set as " + proxy_host);
+                getLogger().debug("Proxy host set as " + proxy_host);
                 SSLSocketFactoryFactory factoryFactory = new SSLSocketFactoryFactory();
 
                 factoryFactory.initialize(new Properties(), null);
@@ -372,19 +372,19 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
 
 
             mqttClientConnectLock.writeLock().lock();
-            logger.debug("MQTT client connect locked");
-            logger.info("INFO: MQTT client connect locked");
+            getLogger().debug("MQTT client connect locked");
+            getLogger().info("INFO: MQTT client connect locked");
             try {
                 mqttClient = getMqttClient(broker, clientID, persistence);
             } finally {
                 mqttClientConnectLock.writeLock().unlock();
-                logger.debug("MQTT client connect unlocked");
+                getLogger().debug("MQTT client connect unlocked");
             }
         } catch(MqttException me) {
-            logger.error("Failed to initialize the connection to the  " + me.getMessage());
+            getLogger().error("Failed to initialize the connection to the  " + me.getMessage());
         } catch(RuntimeException re){
-            logger.error("Runtimes suck: " + re.getMessage());
-            logger.error("Stacktrace for NPE: ", re);
+            getLogger().error("Runtimes suck: " + re.getMessage());
+            getLogger().error("Stacktrace for NPE: ", re);
         }
     }
 
@@ -415,6 +415,8 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
     protected void setAndConnectClient(MqttCallback mqttCallback) throws MqttException {
         mqttClient = getMqttClient(broker, clientID, persistence);
         mqttClient.setCallback(mqttCallback);
+        logger.info("Set callback and now attempting to connect");
         mqttClient.connect(connOpts);
+        logger.info("Connected");
     }
 }

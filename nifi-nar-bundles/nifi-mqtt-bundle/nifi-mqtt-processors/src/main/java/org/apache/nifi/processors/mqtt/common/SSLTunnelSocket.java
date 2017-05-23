@@ -422,12 +422,17 @@ public class SSLTunnelSocket extends SSLSocket {
         byte b[];
         try {
             //we really do want ASCII7 as the http protocol doesnt change with locale
+            System.err.println("");
             b = msg.getBytes("ASCII7");
         } catch (UnsupportedEncodingException ignored) {
             //If ASCII7 isn't there, something is seriously wrong!
+            System.err.println("Ascii failed - getting raw bytes");
             b = msg.getBytes();
         }
+
+        System.err.println("Writing bytes to tunnel out: " + out.toString());
         out.write(b);
+        System.err.println("Flushing");
         out.flush();
 
         byte reply[] = new byte[200];
@@ -435,6 +440,7 @@ public class SSLTunnelSocket extends SSLSocket {
         int newlinesSeen = 0;
         boolean headerDone = false;
 
+        System.err.println("Getting tunnel input stream");
         InputStream in = tunnel.getInputStream();
         boolean error = false;
 
@@ -455,6 +461,8 @@ public class SSLTunnelSocket extends SSLSocket {
             }
         }
 
+        System.err.println("Finished reading lines, newlines seen: " + newlinesSeen);
+
         //convert byte array to string
         String replyStr;
         try {
@@ -463,11 +471,14 @@ public class SSLTunnelSocket extends SSLSocket {
             replyStr = new String(reply, 0, replyLen);
         }
 
+        System.err.println("Reply: " + replyStr);
+
         //we check for connection established because our proxy returns http/1.1 instead of 1.0
         if (replyStr.toLowerCase().indexOf("200 connection established") == -1) {
             System.err.println(replyStr);
             throw new IOException("Unable to tunnel through " + tunnelHost + ":" + tunnelPort + ". Proxy returns\"" + replyStr + "\"");
         }
         //tunneling hanshake was successful
+        System.err.println("Tunnen handshake was successful");
     }
 }

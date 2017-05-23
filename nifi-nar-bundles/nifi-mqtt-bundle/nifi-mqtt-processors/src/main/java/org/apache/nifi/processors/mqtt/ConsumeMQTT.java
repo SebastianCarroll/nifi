@@ -224,10 +224,14 @@ public class ConsumeMQTT extends AbstractMQTTProcessor {
         logger.info("Unscheduling");
         scheduled.set(false);
 
+        logger.info("Attempting to take writelock again");
         mqttClientConnectLock.writeLock().lock();
         try {
             if(isConnected()) {
-                mqttClient.disconnect(DISCONNECT_TIMEOUT);
+                logger.info("attempting disconnect of the MQTT client");
+                //mqttClient.disconnect(DISCONNECT_TIMEOUT);
+                // TODO: Apparently there is a bug in the paho client that casues disconnect to hang
+                mqttClient.disconnectForcibly(DISCONNECT_TIMEOUT, DISCONNECT_TIMEOUT);
                 logger.info("Disconnected the MQTT client.");
             }
         } catch(MqttException me) {
@@ -350,15 +354,19 @@ public class ConsumeMQTT extends AbstractMQTTProcessor {
         mqttClientConnectLock.writeLock().lock();
         try {
             if (!mqttClient.isConnected()) {
+                logger.info("MQTT client not connected");
                 setAndConnectClient(new ConsumeMQTTCallback());
                 mqttClient.subscribe(topicFilter, qos);
+                logger.info("Subscribed to topicFilter: " + topicFilter);
             }
         } finally {
+            logger.info("Unlocking mqtt client lock");
             mqttClientConnectLock.writeLock().unlock();
         }
     }
 
     private boolean isConnected(){
+        logger.info("Checking if client is connected");
         return (mqttClient != null && mqttClient.isConnected());
     }
 }
