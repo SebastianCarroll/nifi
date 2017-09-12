@@ -205,33 +205,22 @@ public class ConsumeMQTT extends AbstractMQTTProcessor {
 
     @OnScheduled
     public void onScheduled(final ProcessContext context) throws IOException, ClassNotFoundException {
-        logger.info("Running onScheduled");
-        try {
-            logger.info("Running onScheduled: In try block");
-            qos = context.getProperty(PROP_QOS).asInteger();
-            maxQueueSize = context.getProperty(PROP_MAX_QUEUE_SIZE).asLong();
-            topicFilter = context.getProperty(PROP_TOPIC_FILTER).getValue();
+        qos = context.getProperty(PROP_QOS).asInteger();
+        maxQueueSize = context.getProperty(PROP_MAX_QUEUE_SIZE).asLong();
+        topicFilter = context.getProperty(PROP_TOPIC_FILTER).getValue();
 
-            buildClient(context);
-            scheduled.set(true);
-        } catch(Exception e) {
-            logger.error("Runtime: " + e.getMessage() + e.getStackTrace());
-        }
+        buildClient(context);
+        scheduled.set(true);
     }
 
     @OnUnscheduled
     public void onUnscheduled(final ProcessContext context) {
-        logger.info("Unscheduling");
         scheduled.set(false);
 
-        logger.info("Attempting to take writelock again");
         mqttClientConnectLock.writeLock().lock();
         try {
             if(isConnected()) {
-                logger.info("attempting disconnect of the MQTT client");
-                //mqttClient.disconnect(DISCONNECT_TIMEOUT);
-                // TODO: Apparently there is a bug in the paho client that casues disconnect to hang
-                mqttClient.disconnectForcibly(DISCONNECT_TIMEOUT, DISCONNECT_TIMEOUT);
+                mqttClient.disconnect(DISCONNECT_TIMEOUT);
                 logger.info("Disconnected the MQTT client.");
             }
         } catch(MqttException me) {
@@ -354,19 +343,15 @@ public class ConsumeMQTT extends AbstractMQTTProcessor {
         mqttClientConnectLock.writeLock().lock();
         try {
             if (!mqttClient.isConnected()) {
-                logger.info("MQTT client not connected");
                 setAndConnectClient(new ConsumeMQTTCallback());
                 mqttClient.subscribe(topicFilter, qos);
-                logger.info("Subscribed to topicFilter: " + topicFilter);
             }
         } finally {
-            logger.info("Unlocking mqtt client lock");
             mqttClientConnectLock.writeLock().unlock();
         }
     }
 
     private boolean isConnected(){
-        logger.info("Checking if client is connected");
         return (mqttClient != null && mqttClient.isConnected());
     }
 }

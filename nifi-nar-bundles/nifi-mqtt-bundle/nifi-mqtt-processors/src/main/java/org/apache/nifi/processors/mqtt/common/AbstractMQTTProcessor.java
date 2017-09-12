@@ -37,9 +37,6 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.internal.security.SSLSocketFactoryFactory;
-//import org.eclipse.paho.client.mqttv3.*;
-//import javax.net.ssl.SSLSocketFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -120,6 +117,7 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
                 return StandardValidators.createAttributeExpressionLanguageValidator(AttributeExpression.ResultType.BOOLEAN, false)
                         .validate(subject, input, context);
             }
+
         }
     };
 
@@ -237,19 +235,6 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
             .addValidator(StandardValidators.POSITIVE_INTEGER_VALIDATOR)
             .build();
 
-    public static final PropertyDescriptor PROXY_HOST = new PropertyDescriptor.Builder()
-            .name("Proxy Host")
-            .description("The fully qualified hostname or IP address of the proxy server")
-            .required(false)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
-    public static final PropertyDescriptor PROXY_PORT = new PropertyDescriptor.Builder()
-            .name("Proxy Port")
-            .description("The port of the proxy server")
-            .required(false)
-            .addValidator(StandardValidators.PORT_VALIDATOR)
-            .build();
-
     public static List<PropertyDescriptor> getAbstractPropertyDescriptors(){
         final List<PropertyDescriptor> descriptors = new ArrayList<PropertyDescriptor>();
         descriptors.add(PROP_BROKER_URI);
@@ -265,8 +250,6 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
         descriptors.add(PROP_MQTT_VERSION);
         descriptors.add(PROP_CONN_TIMEOUT);
         descriptors.add(PROP_KEEP_ALIVE_INTERVAL);
-        descriptors.add(PROXY_HOST);
-        descriptors.add(PROXY_PORT);
         return descriptors;
     }
 
@@ -297,6 +280,7 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
         }
 
         // Removing the validation for Broker URI
+        /*
         try {
             URI brokerURI = new URI(validationContext.getProperty(PROP_BROKER_URI).getValue());
             if (brokerURI.getScheme().equalsIgnoreCase("ssl") && !validationContext.getProperty(PROP_SSL_CONTEXT_SERVICE).isSet()) {
@@ -306,6 +290,7 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
         } catch (URISyntaxException e) {
             results.add(new ValidationResult.Builder().subject(PROP_BROKER_URI.getName()).valid(false).explanation("it is not valid URI syntax.").build());
         }
+        */
 
         return results;
     }
@@ -347,44 +332,25 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
                 connOpts.setWill(lastWillTopicProp.getValue(), lastWillMessage.getBytes(), lastWillQOS, lastWillRetain.isSet() ? lastWillRetain.asBoolean() : false);
             }
 
+
             PropertyValue usernameProp = context.getProperty(PROP_USERNAME);
             if(usernameProp.isSet()) {
                 connOpts.setUserName(usernameProp.getValue());
                 connOpts.setPassword(context.getProperty(PROP_PASSWORD).getValue().toCharArray());
             }
 
-            PropertyValue proxy_host = context.getProperty(PROXY_HOST);
-            Integer proxy_port = context.getProperty(PROXY_PORT).asInteger();
-            getLogger().info("Proxy host set as: " + proxy_host);
-            
-            if(proxy_host.isSet()) {
-                getLogger().debug("Proxy host set as " + proxy_host);
-                SSLSocketFactoryFactory factoryFactory = new SSLSocketFactoryFactory();
-
-                factoryFactory.initialize(new Properties(), null);
-                connOpts.setSocketFactory(
-                        new SSLTunnelSocketFactory(
-                                factoryFactory.createSocketFactory(null),
-                                proxy_host.getValue(),
-                                proxy_port));
-
-            }
-
-
             mqttClientConnectLock.writeLock().lock();
-            getLogger().debug("MQTT client connect locked");
-            getLogger().info("INFO: MQTT client connect locked");
-            try {
+            try{
                 mqttClient = getMqttClient(broker, clientID, persistence);
+
             } finally {
                 mqttClientConnectLock.writeLock().unlock();
-                getLogger().debug("MQTT client connect unlocked");
             }
         } catch(MqttException me) {
-            getLogger().error("Failed to initialize the connection to the  " + me.getMessage());
+            logger.error("Failed to initialize the connection to the  " + me.getMessage());
         } catch(RuntimeException re){
-            getLogger().error("Runtimes suck: " + re.getMessage());
-            getLogger().error("Stacktrace for NPE: ", re);
+            logger.error("Runtimes suck: " + re.getMessage());
+            logger.error("Stacktrace for NPE: ", re);
         }
     }
 
@@ -415,8 +381,6 @@ public abstract class AbstractMQTTProcessor extends AbstractSessionFactoryProces
     protected void setAndConnectClient(MqttCallback mqttCallback) throws MqttException {
         mqttClient = getMqttClient(broker, clientID, persistence);
         mqttClient.setCallback(mqttCallback);
-        logger.info("Set callback and now attempting to connect");
         mqttClient.connect(connOpts);
-        logger.info("Connected");
     }
 }
